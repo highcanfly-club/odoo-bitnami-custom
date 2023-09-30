@@ -10,10 +10,14 @@ RUN apk update \
     && cd /tmp/ \
     && git clone -b 16.0 --single-branch https://github.com/odoomates/odooapps.git \
     && mv odooapps/* /bitnami/odoo/addons/ \
-    && rm -f /bitnami/odoo/addons/README.md
+    && rm -f /bitnami/odoo/addons/README.mail_debrand
+FROM golang:1.21 as gobuilder
+COPY getsecret /getsecret
+RUN cd /getsecret && go mod tidy && go build
 
 FROM docker.io/bitnami/odoo:16
 RUN mkdir -p /addons
+COPY --from=gobuilder /getsecret/getsecret /usr/local/bin/getsecret
 COPY --from=builder /bitnami/odoo/addons/ /addons/
 COPY --chmod=0755 deploy-addons.sh /deploy-addons.sh
 RUN /deploy-addons.sh \
