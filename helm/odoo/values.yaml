@@ -1,0 +1,72 @@
+smtpd:
+  updateStrategy: RollingUpdate # Recreate | RollingUpdate
+  useCloudflareDDNS: "0"
+  useLetsEncrypt: "0"
+  relayHost: ""
+  ports:
+  - name: "25"
+    port: 25
+    targetPort: 25
+  replicas: 1
+  image:
+    repository: highcanfly/smtp-relay
+    tag: latest
+  resources:
+    limits:
+      cpu: 900m
+      memory: "322122547"
+  type: ClusterIP
+
+pgadmin:
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: true
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+  autoscaling:
+    enabled: false
+  image:
+    repository: dpage/pgadmin4
+    pullPolicy: Always
+    tag: "7"
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+  Servers:
+    1:
+      Name: "odoo"
+      Group: "Local servers"
+      Port: 5432
+      Username: "postgres"
+      Host: "postgres"
+      SSLMode: "prefer"
+      MaintenanceDB: "postgres"
+
+odoo:
+  persistence:
+    size: 2Gi
+  odooEmail: admin@example.org
+  odooPassword: password
+  loadDemoData: false
+  ingress:
+    annotations:
+      cert-manager.io/cluster-issuer: ca-issuer
+    enabled: true
+    ingressClassName: nginx
+    hostname: odoo.example.org
+    tls: false
+  image:
+    repository: highcanfly/odoo-bitnami-custom
+    tag: latest
+    # repository: bitnami/odoo
+    # tag: 16
+    pullPolicy: Always
+  # updateStrategy:
+  #   type: Recreate
+  #   # rollingUpdate: null

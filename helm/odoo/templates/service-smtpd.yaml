@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: smtpd
+spec:
+  type: {{ .Values.smtpd.type }}
+  selector:
+    app: smtpd
+  ports:
+	{{- .Values.smtpd.ports | toYaml | nindent 2 -}}

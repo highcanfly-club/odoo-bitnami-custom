@@ -1,0 +1,51 @@
+{{- if .Values.pgadmin.ingress.enabled -}}
+{{- $fullName := include "odoo.fullname" . -}}
+{{- if and .Values.pgadmin.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.pgadmin.ingress.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.pgadmin.ingress.annotations "kubernetes.io/ingress.class" .Values.pgadmin.ingress.className}}
+  {{- end }}
+{{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  name: pgadmin-ingress
+  labels:
+    {{- include "odoo.labels" . | nindent 4 }}
+  {{- with .Values.pgadmin.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if and .Values.pgadmin.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+  ingressClassName: {{ .Values.pgadmin.ingress.className }}
+  {{- end }}
+  {{- if .Values.pgadmin.ingress.tls }}
+  tls:
+    {{- range .Values.pgadmin.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.pgadmin.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        - backend:
+            service:
+              name: 'pgadmin-service'
+              port:
+                number: {{ $.Values.pgadmin.service.port }}
+          path: /
+          pathType: Prefix
+    {{- end }}
+{{- end }}

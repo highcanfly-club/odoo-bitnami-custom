@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+spec:
+  {{- if not .Values.pgadmin.autoscaling.enabled }}
+  replicas: {{ .Values.pgadmin.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      {{- with .Values.pgadmin.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app: pgadmin
+    spec:
+      {{- with .Values.pgadmin.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.pgadmin.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.pgadmin.securityContext | nindent 12 }}
+          image: "{{ .Values.pgadmin.image.repository }}:{{ .Values.pgadmin.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.pgadmin.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.pgadmin.service.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.pgadmin.resources | nindent 12 }}
+          env:
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: odoo-password
+                  name: {{ .Release.Name }}
+            - name: PGADMIN_DEFAULT_EMAIL
+              value: {{ .Values.odoo.odooEmail }}
+            - name: PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION
+              value: "True"
+          volumeMounts:
+            - name: servers-config
+              mountPath: /pgadmin4/servers.json
+              subPath: servers.json
+      volumes:
+      - name: servers-config
+        configMap:
+          name: pgadmin-configmap
+          items:
+          - key: servers.json
+            path: servers.json
+      {{- with .Values.pgadmin.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pgadmin.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pgadmin.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgadmin-configmap
+  labels:
+    app: pgadmin
+data:
+  servers.json: |-
+    {
+        "Servers": {
+            "1": {
+                "Name": {{ .Release.Name | quote}},
+                "Group": "Local",
+                "Port": 5432,
+                "Username": "postgres",
+                "Host": {{ printf "%s-postgresql" .Release.Name | quote }},
+                "SSLMode": "prefer",
+                "MaintenanceDB": "postgres"
+            }
+        }
+    }

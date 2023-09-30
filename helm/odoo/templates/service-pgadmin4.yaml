@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin-service
+spec:
+  type: {{ .Values.pgadmin.service.type }}
+  selector:
+    app: pgadmin
+  ports:
+    - port: {{ .Values.pgadmin.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
