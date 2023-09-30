@@ -24,8 +24,8 @@ func main() {
 	var help = flag.Bool("help", false, "Show help")
 	var secretName string
 	var keyName string
-	flag.StringVar(&secretName, "secret", "secret", "Kubernetes name of the secret hosting tls.crt and tls.key (must be in the same namespace)")
-	flag.StringVar(&keyName, "key", "key", "Kubernetes name of the secret hosting tls.crt and tls.key (must be in the same namespace)")
+	flag.StringVar(&secretName, "secret", "secret", "Kubernetes name of the secret (must be in the same namespace)")
+	flag.StringVar(&keyName, "key", "key", "Kubernetes name of the secret key (must be in the same namespace)")
 	// Parse the flags
 	flag.Parse()
 
