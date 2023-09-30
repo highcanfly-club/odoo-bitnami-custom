@@ -18,8 +18,5 @@ COPY --from=builder /bitnami/odoo/addons/ /addons/
 COPY --chmod=0755 deploy-addons.sh /deploy-addons.sh
 RUN /deploy-addons.sh \
     && rm -rf /deploy-addons.sh \
-    rm -rf /addons
-# RUN /deploy-addons.sh \
-#     && rm -rf /deploy-addons.sh \
-#     && apt-get update -y && apt install -y --no-install-recommends \
-#                 wkhtmltopdf
+    && apt-get update -y && apt install -y --no-install-recommends \
+                wkhtmltopdf
