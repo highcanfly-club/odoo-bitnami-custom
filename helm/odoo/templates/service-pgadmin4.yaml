@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: pgadmin-service
 spec:
-  type: {{ .Values.pgadmin.service.type }}
+  type: {{ .Values.pgadmin.service.type | default "ClusterIP" }}
   selector:
     app: pgadmin
   ports:

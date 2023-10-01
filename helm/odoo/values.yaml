@@ -13,10 +13,10 @@ smtpd:
     tag: latest
   resources:
     limits:
-      cpu: 900m
+      cpu: 500m
       memory: "300Mi"
     requests:
-      cpu: 100m
+      cpu: 10m
       memory: "30Mi"
   type: ClusterIP
 
@@ -73,6 +73,23 @@ odoo:
   serviceAccount:
     automountServiceAccountToken: true
     name: odoo-test-account
-  # updateStrategy:
-  #   type: Recreate
-  #   # rollingUpdate: null
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 500m
+  extraEnvVars:
+    - name: BACKUP_FROM
+      value: "backup-odoo@example.org"
+    - name: BACKUP_TO
+      value: "admin@example.org"
+    - name: FQDN
+      value: odoo.example.org
+  customPostInitScripts:
+      custom-post-init.sh: |
+          #!/bin/bash
+          echo "Run init cron"
+          # ln -svf /usr/local/bin/autobackup /etc/cron.weekly/
+          # cron -f &
+  updateStrategy:
+    type: Recreate
+    rollingUpdate: null

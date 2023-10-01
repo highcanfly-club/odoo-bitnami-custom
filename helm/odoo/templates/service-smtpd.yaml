@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: smtpd
 spec:
-  type: {{ .Values.smtpd.type }}
+  type: {{ .Values.smtpd.type | default "ClusterIP" }}
   selector:
     app: smtpd
   ports:
