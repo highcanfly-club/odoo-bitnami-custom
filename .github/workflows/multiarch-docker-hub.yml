@@ -35,15 +35,14 @@ jobs:
         uses: docker/metadata-action@v4.4.0
         with:
           images: ${{ secrets.DOCKER_IMAGE_NAME }}
-      - name: Cache Docker images.
-        uses: ScribeMD/docker-cache@0.3.6
-        with:
-          key: docker-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/arm64, linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
