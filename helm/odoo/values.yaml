@@ -14,7 +14,10 @@ smtpd:
   resources:
     limits:
       cpu: 900m
-      memory: "322122547"
+      memory: "300Mi"
+    requests:
+      cpu: 100m
+      memory: "30Mi"
   type: ClusterIP
 
 pgadmin:
@@ -67,6 +70,9 @@ odoo:
     # repository: bitnami/odoo
     # tag: 16
     pullPolicy: Always
+  serviceAccount:
+    automountServiceAccountToken: true
+    name: odoo-test-account
   # updateStrategy:
   #   type: Recreate
   #   # rollingUpdate: null
