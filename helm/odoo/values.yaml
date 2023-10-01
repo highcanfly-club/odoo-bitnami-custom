@@ -84,8 +84,12 @@ odoo:
       value: "admin@example.org"
     - name: FQDN
       value: odoo.example.org
+  command:
+    - /bin/sh
+    - "-c"
+    - "/docker-entrypoint-init.d/start-autobackup-cron && /opt/bitnami/scripts/odoo/entrypoint.sh /opt/bitnami/scripts/odoo/run.sh"
   customPostInitScripts:
-      custom-post-init.sh: |
+      start-autobackup-cron: |
           #!/bin/bash
           echo "Run init cron"
           # ln -svf /usr/local/bin/autobackup /etc/cron.weekly/
