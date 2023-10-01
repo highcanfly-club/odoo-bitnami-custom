@@ -32,5 +32,5 @@ Content-Disposition: inline; filename="backup-$NOW.tar.gz"
 
 EOF
 )    | (cat - && /usr/bin/openssl base64 < /tmp/backup.tar.gz && echo "" && echo "---")\
-     | /usr/sbin/sendmail -f $BACKUP_FROM -S $SMTP_HOST -t --
+     | /usr/sbin/sendmail -f $BACKUP_FROM -S $SMTPD_SERVICE_HOST -t --
 rm -rf /tmp/backup.tar.gz
