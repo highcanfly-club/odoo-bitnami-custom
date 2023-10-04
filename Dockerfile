@@ -25,7 +25,7 @@ FROM golang:1.21-bullseye as gobuilder
 COPY getsecret /getsecret
 RUN cd /getsecret && go mod tidy && go build -ldflags="-s -w"
 
-FROM docker.io/bitnami/odoo:16
+FROM bitnami/odoo:16
 RUN mkdir -p /addons
 COPY --from=gobuilder /getsecret/getsecret /usr/local/bin/getsecret
 COPY --from=builder /bitnami/odoo/addons/ /addons/
@@ -33,7 +33,11 @@ COPY --chmod=0755 deploy-addons.sh /deploy-addons.sh
 COPY --chmod=0755 autobackup.sh /usr/local/bin/autobackup
 RUN /deploy-addons.sh \
     && rm -rf /deploy-addons.sh \
-    && apt-get update -y && apt install -y --no-install-recommends \
-                wkhtmltopdf cron
+    && apt-get update -y && apt install -y --no-install-recommends cron
+RUN if [ "$(dpkg --print-architecture)" = "arm64" ] ; then \
+    curl -sLO https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb  \
+    && dpkg -i "wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb" \
+    && rm wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb  ;\
+    fi
 COPY --from=busyboxbuilder /busybox-1.36.1/_install/bin/busybox /bin/busybox
 RUN ln -svf /bin/busybox /usr/sbin/sendmail
