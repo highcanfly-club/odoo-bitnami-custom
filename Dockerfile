@@ -34,10 +34,10 @@ COPY --chmod=0755 autobackup.sh /usr/local/bin/autobackup
 RUN /deploy-addons.sh \
     && rm -rf /deploy-addons.sh \
     && apt-get update -y && apt install -y --no-install-recommends cron
-RUN if [ "$(dpkg --print-architecture)" = "arm64" ] ; then \
-    curl -sLO https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb  \
-    && dpkg -i "wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb" \
-    && rm wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb  ;\
-    fi
+# RUN if [ "$(dpkg --print-architecture)" = "arm64" ] ; then \
+#     curl -sLO https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb  \
+#     && dpkg -i "wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb" \
+#     && rm wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb  ;\
+#     fi
 COPY --from=busyboxbuilder /busybox-1.36.1/_install/bin/busybox /bin/busybox
 RUN ln -svf /bin/busybox /usr/sbin/sendmail
