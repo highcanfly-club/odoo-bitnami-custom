@@ -1,3 +1,4 @@
+{{ if .Values.smtpd.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -83,3 +84,4 @@ spec:
         resources: {{- toYaml .Values.smtpd.resources | nindent 10 }}
       imagePullSecrets: {{ .Values.imagePullSecrets | default list | toJson }}
       restartPolicy: Always
+{{ end }}

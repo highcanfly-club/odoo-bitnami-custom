@@ -1,4 +1,4 @@
-{{- if .Values.pgadmin.ingress.enabled -}}
+{{- if and .Values.pgadmin.ingress.enabled .Values.pgadmin.enabled -}}
 {{- $fullName := include "odoo.fullname" . -}}
 {{- if and .Values.pgadmin.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.pgadmin.ingress.annotations "kubernetes.io/ingress.class") }}

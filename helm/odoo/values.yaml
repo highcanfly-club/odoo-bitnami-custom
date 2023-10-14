@@ -1,4 +1,5 @@
 smtpd:
+  enabled: true
   updateStrategy: RollingUpdate # Recreate | RollingUpdate
   useCloudflareDDNS: "0"
   useLetsEncrypt: "0"
@@ -21,6 +22,7 @@ smtpd:
   type: ClusterIP
 
 pgadmin:
+  enabled: true
   service:
     type: ClusterIP
     port: 80
