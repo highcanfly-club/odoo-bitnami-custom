@@ -8,7 +8,7 @@ RUN apk update \
     && curl -J -L 'https://github.com/herokukms/odoo-addons/raw/main/addons/base_location-16.0.1.0.1.tar.bz2' | tar -xvj \
     && curl -J -L 'https://github.com/herokukms/odoo-addons/raw/main/addons/currency_rate_update-16.0.1.1.2.tar.bz2' | tar -xvj \
     && cd /tmp/ \
-    && git clone -b 16.0 --single-branch https://github.com/odoomates/odooapps.git \
+    && git clone -b 16.0 --single-branch https://github.com/eltorio/odooapps.git \
     && mv odooapps/* /bitnami/odoo/addons/ \
     && git clone https://github.com/eltorio/odoo-bank-account-on-invoice.git \
     && mv odoo-bank-account-on-invoice/iban_on_invoice_module /bitnami/odoo/addons/ \
