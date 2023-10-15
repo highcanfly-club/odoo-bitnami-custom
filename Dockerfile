@@ -10,6 +10,8 @@ RUN apk update \
     && cd /tmp/ \
     && git clone -b 16.0 --single-branch https://github.com/odoomates/odooapps.git \
     && mv odooapps/* /bitnami/odoo/addons/ \
+    && git clone https://github.com/eltorio/odoo-bank-account-on-invoice.git \
+    && mv odoo-bank-account-on-invoice/iban_on_invoice_module /bitnami/odoo/addons/ \
     && rm -f /bitnami/odoo/addons/README.mail_debrand
 
 FROM debian:bullseye AS busyboxbuilder
