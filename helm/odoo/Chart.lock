@@ -1,6 +1,6 @@
 dependencies:
 - name: odoo
   repository: oci://registry-1.docker.io/bitnamicharts
-  version: 23.3.4
-digest: sha256:59ff334960e877ac0657b1735ba72182ca97cecd5b5c3b1335af1109540642c2
-generated: "2023-09-30T14:17:32.732437+02:00"
+  version: 24.0.5
+digest: sha256:949e3caefb3764b5c88506d27ecac5dbadb27a29c7e8c652c31bdccce076f0c3
+generated: "2023-10-22T09:55:01.155951+02:00"
