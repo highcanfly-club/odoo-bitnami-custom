@@ -99,3 +99,8 @@ odoo:
   updateStrategy:
     type: Recreate
     rollingUpdate: null
+  postgresql:
+    backup:
+      cronjob:
+        enabled: true
+        schedule: '@weekly'
