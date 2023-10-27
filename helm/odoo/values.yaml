@@ -86,16 +86,16 @@ odoo:
       value: "admin@example.org"
     - name: FQDN
       value: odoo.example.org
-  command:
-    - /bin/sh
-    - "-c"
-    - "/docker-entrypoint-init.d/start-autobackup-cron && /opt/bitnami/scripts/odoo/entrypoint.sh /opt/bitnami/scripts/odoo/run.sh"
   customPostInitScripts:
       start-autobackup-cron: |
           #!/bin/bash
           echo "Run init cron"
-          # ln -svf /usr/local/bin/autobackup /etc/cron.weekly/
-          # cron -f &
+          echo "0 0 * * 0     /usr/local/bin/autobackup" > /etc/cron.d/autobackup
+          crond -f &
+  command:
+    - /bin/sh
+    - "-c"
+    - "/docker-entrypoint-init.d/start-autobackup-cron ; /opt/bitnami/scripts/odoo/entrypoint.sh /opt/bitnami/scripts/odoo/run.sh"
   updateStrategy:
     type: Recreate
     rollingUpdate: null
