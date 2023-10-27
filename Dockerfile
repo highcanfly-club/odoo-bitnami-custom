@@ -27,6 +27,16 @@ FROM golang:1.21-bullseye as gobuilder
 COPY getsecret /getsecret
 RUN cd /getsecret && go mod tidy && go build -ldflags="-s -w"
 
+FROM bitnami/odoo:16 as dcronbuilder
+USER root
+RUN cd / \
+    && apt-get update -y \
+    && apt-get install -y build-essential curl libntirpc-dev git
+RUN mkdir -p /etc/cron.d && chown -R 1001 /etc/cron.d
+RUN git clone https://github.com/eltorio/dcron.git \
+    && cd dcron \
+    && make CRONTAB_GROUP=odoo CRONTABS=/tmp/crontabs CRONSTAMPS=/tmp/cronstamps
+
 FROM bitnami/odoo:16
 RUN mkdir -p /addons
 COPY --from=gobuilder /getsecret/getsecret /usr/local/bin/getsecret
@@ -34,8 +44,8 @@ COPY --from=builder /bitnami/odoo/addons/ /addons/
 COPY --chmod=0755 deploy-addons.sh /deploy-addons.sh
 COPY --chmod=0755 autobackup.sh /usr/local/bin/autobackup
 RUN /deploy-addons.sh \
-    && rm -rf /deploy-addons.sh \
-    && apt-get update -y && apt install -y --no-install-recommends cron
+    && rm -rf /deploy-addons.sh
+    # && apt-get update -y && apt install -y --no-install-recommends cron
 # RUN if [ "$(dpkg --print-architecture)" = "arm64" ] ; then \
 #     curl -sLO https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb  \
 #     && dpkg -i "wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb" \
@@ -43,3 +53,5 @@ RUN /deploy-addons.sh \
 #     fi
 COPY --from=busyboxbuilder /busybox-1.36.1/_install/bin/busybox /bin/busybox
 RUN ln -svf /bin/busybox /usr/sbin/sendmail
+COPY --from=dcronbuilder /dcron/crond /usr/sbin/crond
+RUN mkdir -p /etc/cron.d && chown -R 1001 /etc/cron.d && chmod 0755 /usr/sbin/crond
