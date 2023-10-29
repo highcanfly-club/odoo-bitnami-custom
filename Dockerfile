@@ -12,6 +12,12 @@ RUN apk update \
     && mv odooapps/* /bitnami/odoo/addons/ \
     && git clone https://github.com/eltorio/odoo-bank-account-on-invoice.git \
     && mv odoo-bank-account-on-invoice/iban_on_invoice_module /bitnami/odoo/addons/ \
+    && git clone -b 16.0 --single-branch https://github.com/OCA/community-data-files.git \
+    && mv community-data-files/base_* /bitnami/odoo/addons/ \
+    && git clone -b 16.0 --single-branch https://github.com/OCA/bank-payment.git \
+    && mv bank-payment/account* /bitnami/odoo/addons/ \
+    && git clone -b 16.0 --single-branch https://github.com/OCA/pos.git \
+    && mv pos/pos_* /bitnami/odoo/addons/ \
     && rm -f /bitnami/odoo/addons/README.mail_debrand
 
 FROM debian:bullseye AS busyboxbuilder
@@ -43,7 +49,7 @@ COPY --from=gobuilder /getsecret/getsecret /usr/local/bin/getsecret
 COPY --from=builder /bitnami/odoo/addons/ /addons/
 COPY --chmod=0755 deploy-addons.sh /deploy-addons.sh
 COPY --chmod=0755 autobackup.sh /usr/local/bin/autobackup
-RUN /deploy-addons.sh \
+RUN sh /deploy-addons.sh \
     && rm -rf /deploy-addons.sh
     # && apt-get update -y && apt install -y --no-install-recommends cron
 # RUN if [ "$(dpkg --print-architecture)" = "arm64" ] ; then \
