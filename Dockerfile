@@ -1,22 +1,41 @@
+ARG BASE_VERSION_SHORT=16
+ARG BASE_VERSION=16.0
+
+
 FROM alpine:latest as builder
+ARG BASE_VERSION_SHORT
+ARG BASE_VERSION
 RUN apk update \
     && apk add curl git \
     && mkdir -p /bitnami/odoo/addons \
-    && cd /bitnami/odoo/addons/ \
-    && curl -J -L https://github.com/herokukms/odoo-addons/raw/main/addons/OCA-16.0.0.0.tar.bz2 | tar -xvj \
-    && curl -J -L 'https://github.com/herokukms/odoo-addons/raw/main/addons/mail_debrand-16.0.230212.212209.tar.bz2' | tar -xvj \
-    && curl -J -L 'https://github.com/herokukms/odoo-addons/raw/main/addons/base_location-16.0.1.0.1.tar.bz2' | tar -xvj \
-    && curl -J -L 'https://github.com/herokukms/odoo-addons/raw/main/addons/currency_rate_update-16.0.1.1.2.tar.bz2' | tar -xvj \
     && cd /tmp/ \
-    && git clone -b 16.0 --single-branch https://github.com/eltorio/odooapps.git \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/server-brand.git \
+    && mv server-brand/remove_odoo_enterprise /bitnami/odoo/addons/ \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/account-financial-tools.git \
+    && mv account-financial-tools/account_asset_management /bitnami/odoo/addons/ \
+    && mv account-financial-tools/account_cash_deposit /bitnami/odoo/addons/ \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/helpdesk.git \
+    && mv helpdesk/helpdesk_mgmt /bitnami/odoo/addons/ \
+    && mv helpdesk/helpdesk_mgmt_project /bitnami/odoo/addons/ \
+    && mv helpdesk/helpdesk_mgmt_timesheet /bitnami/odoo/addons/ \
+    && mv helpdesk/helpdesk_type /bitnami/odoo/addons/ \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/website.git \
+    && mv website/website_odoo_debranding /bitnami/odoo/addons/ \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/social.git \
+    && mv social/mail_debrand /bitnami/odoo/addons/ \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/currency.git \
+    && mv currency/currency_rate_update /bitnami/odoo/addons/ \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/partner-contact.git \
+    && mv partner-contact/base_location /bitnami/odoo/addons/ \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/eltorio/odooapps.git \
     && mv odooapps/* /bitnami/odoo/addons/ \
     && git clone https://github.com/eltorio/odoo-bank-account-on-invoice.git \
     && mv odoo-bank-account-on-invoice/iban_on_invoice_module /bitnami/odoo/addons/ \
-    && git clone -b 16.0 --single-branch https://github.com/OCA/community-data-files.git \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/community-data-files.git \
     && mv community-data-files/base_* /bitnami/odoo/addons/ \
-    && git clone -b 16.0 --single-branch https://github.com/OCA/bank-payment.git \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/bank-payment.git \
     && mv bank-payment/account* /bitnami/odoo/addons/ \
-    && git clone -b 16.0 --single-branch https://github.com/OCA/pos.git \
+    && git clone -b $BASE_VERSION --single-branch https://github.com/OCA/pos.git \
     && mv pos/pos_* /bitnami/odoo/addons/ \
     && rm -f /bitnami/odoo/addons/README.mail_debrand
 
@@ -33,7 +52,9 @@ FROM golang:1.21-bullseye as gobuilder
 COPY getsecret /getsecret
 RUN cd /getsecret && go mod tidy && go build -ldflags="-s -w"
 
-FROM bitnami/odoo:16 as dcronbuilder
+ARG BASE_VERSION_SHORT
+ARG BASE_VERSION
+FROM bitnami/odoo:$BASE_VERSION_SHORT as dcronbuilder
 USER root
 RUN cd / \
     && apt-get update -y \
@@ -43,12 +64,16 @@ RUN git clone https://github.com/eltorio/dcron.git \
     && cd dcron \
     && make CRONTAB_GROUP=odoo CRONTABS=/tmp/crontabs CRONSTAMPS=/tmp/cronstamps
 
-FROM bitnami/odoo:16
+ARG BASE_VERSION_SHORT
+ARG BASE_VERSION
+FROM bitnami/odoo:$BASE_VERSION_SHORT
 RUN mkdir -p /addons
 COPY --from=gobuilder /getsecret/getsecret /usr/local/bin/getsecret
 COPY --from=builder /bitnami/odoo/addons/ /addons/
 COPY --chmod=0755 deploy-addons.sh /deploy-addons.sh
 COPY --chmod=0755 autobackup.sh /usr/local/bin/autobackup
+RUN apt-get update -y \
+    && apt-get install -y xz-utils bzip2 vim
 RUN sh /deploy-addons.sh \
     && rm -rf /deploy-addons.sh
     # && apt-get update -y && apt install -y --no-install-recommends cron

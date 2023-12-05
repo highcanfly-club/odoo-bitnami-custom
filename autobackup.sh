@@ -5,7 +5,7 @@ NOW=$(date -I)
 DBFILENAME="/bitnami/odoo/data/$ODOO_DATABASE_NAME-$NOW.dump"
 export PGPASSWORD
 pg_dump -U postgres -h "$ODOO_DATABASE_HOST" -Fc -O "$ODOO_DATABASE_NAME" > "$DBFILENAME"
-tar -cvzf /tmp/backup.tar.gz "$DBFILENAME" /bitnami/odoo/data/filestore /bitnami/odoo/data/addons
+tar -cvJf /tmp/backup.tar.xz "$DBFILENAME" /bitnami/odoo/data/filestore /bitnami/odoo/data/addons
 rm -rf "${DBFILENAME}"
 (
 cat << EOF 
@@ -26,11 +26,11 @@ accès https://$FQDN/
 Odoo+ team
 
 ---
-Content-Type: application/octet-stream; name="backup-$NOW.tar.gz"
+Content-Type: application/octet-stream; name="backup-$NOW.tar.xz"
 Content-Transfer-Encoding: base64
-Content-Disposition: inline; filename="backup-$NOW.tar.gz"
+Content-Disposition: inline; filename="backup-$NOW.tar.xz"
 
 EOF
-)    | (cat - && /usr/bin/openssl base64 < /tmp/backup.tar.gz && echo "" && echo "---")\
+)    | (cat - && /usr/bin/openssl base64 < /tmp/backup.tar.xz && echo "" && echo "---")\
      | /usr/sbin/sendmail -f $BACKUP_FROM -S $SMTPD_SERVICE_HOST -t --
-rm -rf /tmp/backup.tar.gz
+rm -rf /tmp/backup.tar.xz
