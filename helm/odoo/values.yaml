@@ -39,7 +39,7 @@ pgadmin:
   image:
     repository: dpage/pgadmin4
     pullPolicy: Always
-    tag: "7"
+    tag: "8"
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
