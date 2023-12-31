@@ -1,12 +1,23 @@
 #!/bin/bash
-RELESASE_NAME=$(echo "$ODOO_DATABASE_HOST" | sed -ne "s/^\(.*\)-postgresql$/\1/p")
-PGPASSWORD=$(getsecret -secret "$RELESASE_NAME-postgresql" -key postgres-password)
-NOW=$(date -I)
-DBFILENAME="/bitnami/odoo/data/$ODOO_DATABASE_NAME-$NOW.dump"
-export PGPASSWORD
-pg_dump -U postgres -h "$ODOO_DATABASE_HOST" -Fc -O "$ODOO_DATABASE_NAME" > "$DBFILENAME"
-tar -cvJf /tmp/backup.tar.xz "$DBFILENAME" /bitnami/odoo/data/filestore /bitnami/odoo/data/addons
-rm -rf "${DBFILENAME}"
+NOW=$(date +%F)
+BACKUP_DIR=/bitnami/odoo/backups
+FILENAME="${ODOO_DATABASE_NAME}.${NOW}.zip"
+
+# create a backup directory
+mkdir -p ${BACKUP_DIR}
+
+# create a backup
+curl -X POST \
+    -F "master_pwd=${ODOO_PASSWORD}" \
+    -F "name=${ODOO_DATABASE_NAME}" \
+    -F "backup_format=zip" \
+    -o ${BACKUP_DIR}/${FILENAME} \
+    http://localhost:8069/web/database/backup
+
+
+# delete old backups
+find ${BACKUP_DIR} -type f -mtime +7 -name "${ODOO_DATABASE_NAME}.*.zip" -delete
+
 (
 cat << EOF 
 From: "SAUVEGARDE @Odoo" <$BACKUP_FROM>
@@ -22,15 +33,14 @@ via anonymous FTP in ftp.andrew.cmu.edu:pub/mpack/
 Content-Type: text/plain
 
 Voici la sauvegarde du $NOW
-accès https://$FQDN/
+URL: https://$FQDN/
 Odoo+ team
 
 ---
-Content-Type: application/octet-stream; name="backup-$NOW.tar.xz"
+Content-Type: application/octet-stream; name="$FILENAME"
 Content-Transfer-Encoding: base64
-Content-Disposition: inline; filename="backup-$NOW.tar.xz"
+Content-Disposition: inline; filename="$FILENAME"
 
 EOF
-)    | (cat - && /usr/bin/openssl base64 < /tmp/backup.tar.xz && echo "" && echo "---")\
+)    | (cat - && /usr/bin/openssl base64 < ${BACKUP_DIR}/$FILENAME && echo "" && echo "---")\
      | /usr/sbin/sendmail -f $BACKUP_FROM -S $SMTPD_SERVICE_HOST -t --
-rm -rf /tmp/backup.tar.xz
