@@ -86,6 +86,8 @@ odoo:
       value: "admin@example.org"
     - name: FQDN
       value: odoo.example.org
+    - name: BACKUP_KEEP_DAYS
+      value: 60
   customPostInitScripts:
       start-autobackup-cron: |
           #!/bin/bash

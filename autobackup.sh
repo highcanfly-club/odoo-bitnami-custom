@@ -16,7 +16,7 @@ curl -X POST \
 
 
 # delete old backups
-find ${BACKUP_DIR} -type f -mtime +7 -name "${ODOO_DATABASE_NAME}.*.zip" -delete
+find ${BACKUP_DIR} -type f -mtime +${BACKUP_KEEP_DAYS} -name "${ODOO_DATABASE_NAME}.*.zip" -delete
 
 (
 cat << EOF 
