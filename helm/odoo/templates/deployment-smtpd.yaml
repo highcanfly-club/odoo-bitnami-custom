@@ -75,6 +75,17 @@ spec:
         - name: RELAYHOST
           value: {{ .Values.smtpd.relayHost | quote }}
         {{ end }}
+        {{ if .Values.smtpd.relayUser }}
+        - name: RELAYUSER
+          value: {{ .Values.smtpd.relayUser | quote }}
+        {{ end }}
+        {{ if .Values.smtpd.relayPassword }}
+        - name: RELAYPASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: RELAYPASSWORD
+              name: smtpd
+        {{ end }}
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ .Values.kubernetesClusterDomain }}
         image: {{ .Values.smtpd.image.repository }}:{{ .Values.smtpd.image.tag | default .Chart.AppVersion }}

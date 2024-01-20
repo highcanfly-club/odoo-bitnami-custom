@@ -4,6 +4,8 @@ smtpd:
   useCloudflareDDNS: "0"
   useLetsEncrypt: "0"
   relayHost: ""
+  relayUser: ""
+  relayPassword: ""
   ports:
   - name: "25"
     port: 25
