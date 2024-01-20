@@ -75,15 +75,15 @@ spec:
         - name: RELAYHOST
           value: {{ .Values.smtpd.relayHost | quote }}
         {{ end }}
-        {{ if .Values.smtpd.relayUser }}
-        - name: RELAYUSER
-          value: {{ .Values.smtpd.relayUser | quote }}
+        {{ if .Values.smtpd.relayHostUser }}
+        - name: RELAYHOST_USERNAME
+          value: {{ .Values.smtpd.relayHostUser | quote }}
         {{ end }}
-        {{ if .Values.smtpd.relayPassword }}
-        - name: RELAYPASSWORD
+        {{ if .Values.smtpd.relayHostPassword }}
+        - name: RELAYHOST_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: RELAYPASSWORD
+              key: relayHostPassword
               name: smtpd
         {{ end }}
         - name: KUBERNETES_CLUSTER_DOMAIN
