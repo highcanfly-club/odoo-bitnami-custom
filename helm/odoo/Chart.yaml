@@ -15,7 +15,7 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.3.8
+version: 0.3.0
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
@@ -28,5 +28,9 @@ dependencies:
   version: 24.0.5
   repository: oci://registry-1.docker.io/bitnamicharts
 - name: flex-smtpd
-  version: 0.1.4
+  version: 0.1.6
   repository: https://helm-repo.highcanfly.club
+  # for adding a repo, use the following line:
+  # helm repo add highcanfly https://helm-repo.highcanfly.club
+  # for updating a repo, use the following line:
+  # helm repo update

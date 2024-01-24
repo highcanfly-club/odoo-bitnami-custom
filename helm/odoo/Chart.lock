@@ -4,6 +4,6 @@ dependencies:
   version: 24.0.5
 - name: flex-smtpd
   repository: https://helm-repo.highcanfly.club
-  version: 0.1.4
-digest: sha256:c522976de468b87b4a79dcdbc73e46767a0ea3b3c5f007445e14b3e179f2e6e8
-generated: "2024-01-23T14:57:27.668842639+01:00"
+  version: 0.1.6
+digest: sha256:de6b83b4a61905cb486c8a5dae4a07b4dcf68c5acf2dfb9bbbf564014a3daf14
+generated: "2024-01-24T07:56:33.003366+01:00"
