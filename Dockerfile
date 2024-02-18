@@ -73,6 +73,7 @@ COPY --from=builder /bitnami/odoo/addons/ /addons/
 COPY --chmod=0755 deploy-addons.sh /deploy-addons.sh
 COPY --chmod=0755 autobackup.sh /usr/local/bin/autobackup
 COPY --chmod=0755 autobackup-s3.sh /usr/local/bin/autobackup-s3
+COPY --chmod=0755 restore-backup-s3.sh /usr/local/bin/restore-backup-s3
 RUN apt-get update -y \
     && apt-get install -y xz-utils bzip2 vim
 RUN sh /deploy-addons.sh \
@@ -83,6 +84,10 @@ RUN sh /deploy-addons.sh \
 #     && dpkg -i "wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb" \
 #     && rm wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb  ;\
 #     fi
+#Modify odoo.conf.tpl for setting limit_time_real = 600
+RUN sed -i 's/limit_time_real = [0-9]*/limit_time_real = 600/' /opt/bitnami/scripts/odoo/bitnami-templates/odoo.conf.tpl \
+    && sed -i 's/limit_time_cpu = [0-9]*/limit_time_cpu = 600/' /opt/bitnami/scripts/odoo/bitnami-templates/odoo.conf.tpl
+
 RUN curl -L https://dl.min.io/client/mc/release/linux-$(dpkg --print-architecture)/mc > /usr/local/bin/mc && chmod +x /usr/local/bin/mc
 COPY --from=busyboxbuilder /busybox-1.36.1/_install/bin/busybox /bin/busybox
 RUN ln -svf /bin/busybox /usr/sbin/sendmail
