@@ -82,6 +82,7 @@ RUN sh /deploy-addons.sh \
 #     && dpkg -i "wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb" \
 #     && rm wkhtmltox_0.12.6-1.buster_$(dpkg --print-architecture).deb  ;\
 #     fi
+RUN curl -L https://dl.min.io/client/mc/release/linux-$(dpkg --print-architecture)/mc > /usr/local/bin/mc && chmod +x /usr/local/bin/mc
 COPY --from=busyboxbuilder /busybox-1.36.1/_install/bin/busybox /bin/busybox
 RUN ln -svf /bin/busybox /usr/sbin/sendmail
 COPY --from=dcronbuilder /dcron/crond /usr/sbin/crond
