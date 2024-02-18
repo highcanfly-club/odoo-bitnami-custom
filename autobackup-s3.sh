@@ -10,6 +10,12 @@ FILENAME="${ODOO_DATABASE_NAME}.${NOW}.zip"
 # create a backup directory
 mkdir -p ${BACKUP_DIR}
 
+# test if variables S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT, S3_REGION, S3_PATH are set
+if [ -z "${S3_BUCKET}" ] || [ -z "${S3_ACCESS_KEY}" ] || [ -z "${S3_SECRET_KEY}" ] || [ -z "${S3_ENDPOINT}" ] || [ -z "${S3_PATH}" ]; then
+    echo "S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT, S3_REGION, S3_PATH are not set"
+    exit 1
+fi
+
 # create a backup
 curl -X POST \
     -F "master_pwd=${ODOO_PASSWORD}" \
@@ -18,11 +24,7 @@ curl -X POST \
     -o ${BACKUP_DIR}/${FILENAME} \
     http://localhost:8069/web/database/backup
 
-# test if variables S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT, S3_REGION, S3_PATH are set
-if [ -z "${S3_BUCKET}" ] || [ -z "${S3_ACCESS_KEY}" ] || [ -z "${S3_SECRET_KEY}" ] || [ -z "${S3_ENDPOINT}" ] || [ -z "${S3_PATH}" ]; then
-    echo "S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY, S3_ENDPOINT, S3_REGION, S3_PATH are not set"
-    exit 1
-fi
+
 # delete old backups
 find ${BACKUP_DIR} -type f -mtime +${BACKUP_KEEP_DAYS} -name "${ODOO_DATABASE_NAME}.*.zip" -delete
 

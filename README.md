@@ -61,7 +61,7 @@ odoo:
     - name: S3_BUCKET
       value: "odoo-backup"
     - name: S3_ENDPOINT
-      value: "s3.example.org"
+      value: "https://s3.example.org"
     - name: S3_ACCESS_KEY
       value: "myAccessKey"
     - name: S3_SECRET_KEY
@@ -76,6 +76,7 @@ odoo:
           echo "0 0 * * 0 root /usr/local/bin/autobackup" > /etc/cron.d/autobackup
           echo "0 1 * * * root /usr/local/bin/autobackup-s3" > /etc/cron.d/autobackup-s3
           chmod +x /usr/local/bin/autobackup
+          chmod +x /usr/local/bin/autobackup-s3
           crond -f &
   livenessProbe:
     periodSeconds: 120
