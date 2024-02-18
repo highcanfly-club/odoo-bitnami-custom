@@ -72,6 +72,7 @@ COPY --from=gobuilder /getsecret/getsecret /usr/local/bin/getsecret
 COPY --from=builder /bitnami/odoo/addons/ /addons/
 COPY --chmod=0755 deploy-addons.sh /deploy-addons.sh
 COPY --chmod=0755 autobackup.sh /usr/local/bin/autobackup
+COPY --chmod=0755 autobackups3.sh /usr/local/bin/autobackup-s3
 RUN apt-get update -y \
     && apt-get install -y xz-utils bzip2 vim
 RUN sh /deploy-addons.sh \

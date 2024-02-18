@@ -1,18 +1,22 @@
 # odoo-bitnami-custom
+
 Custom Bitnami Odoo Docker image
 
-# what differs ?
+## what differs ?
+
 - Include
-  - all the https://github.com/odoomates/odooapps.git
+  - all the <https://github.com/odoomates/odooapps.git>
   - mail debrand module
   - currency rate update module
     …
-# Where ?
+
+## Where ?
+
 ```sh
 docker pull highcanfly/odoo-bitnami-custom:latest
 ```
 
-# Full kubernetes stack with Helm ?
+## Full kubernetes stack with Helm ?
 
 - a postfix server relaying to where you want with dkim signing
 - pgAdmin4 with the same admin user as odoo
@@ -54,12 +58,25 @@ odoo:
       value: "myAdmin@somewhere.org"
     - name: FQDN
       value: odoo.example.org
+    - name: S3_BUCKET
+      value: "odoo-backup"
+    - name: S3_ENDPOINT
+      value: "s3.example.org"
+    - name: S3_ACCESS_KEY
+      value: "myAccessKey"
+    - name: S3_SECRET_KEY
+      value: "mySecretKey"
+    - name: S3_REGION
+      value: "eu-west-1"
   customPostInitScripts:
       start-autobackup-cron: |
           #!/bin/bash
           echo "Run init cron"
-          ln -svf /usr/local/bin/autobackup /etc/cron.weekly/
-          cron -f &
+          mkdir -p /etc/cron.d/
+          echo "0 0 * * 0 root /usr/local/bin/autobackup" > /etc/cron.d/autobackup
+          echo "0 1 * * * root /usr/local/bin/autobackup-s3" > /etc/cron.d/autobackup-s3
+          chmod +x /usr/local/bin/autobackup
+          crond -f &
   livenessProbe:
     periodSeconds: 120
     timeoutSeconds: 10
