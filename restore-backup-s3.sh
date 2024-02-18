@@ -45,3 +45,11 @@ curl -X POST -F "master_pwd=${ODOO_PASSWORD}" \
              -F "backup_file=@${BACKUP_DIR}/${BACKUP_FILE}" \
              -F 'name=database_restore' \
              -F 'copy=true' http://localhost:8069/web/database/restore
+
+echo "You can access the Odoo application using the following url:"
+echo "https://${FQDN}/web?db=${DATABSE_NAME}"
+echo "You can log in using the following credentials:"
+echo "user: ${ODOO_EMAIL}"
+echo "password: ${ODOO_PASSWORD}"
+echo "If you need to define the default database, you should edit the /opt/binami/odoo/conf/odoo.conf file"
+echo "and set the db_name parameter to the ${DATABSE_NAME}"
