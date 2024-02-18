@@ -73,8 +73,8 @@ odoo:
           #!/bin/bash
           echo "Run init cron"
           mkdir -p /etc/cron.d/
-          echo "0 0 * * 0 root /usr/local/bin/autobackup" > /etc/cron.d/autobackup
-          echo "0 1 * * * root /usr/local/bin/autobackup-s3" > /etc/cron.d/autobackup-s3
+          echo "0 0 * * 0 root bash -c '/usr/local/bin/autobackup'" > /etc/cron.d/autobackup
+          echo "0 1 * * * root bash -c '/usr/local/bin/autobackup-s3'" > /etc/cron.d/autobackup-s3
           chmod +x /usr/local/bin/autobackup
           chmod +x /usr/local/bin/autobackup-s3
           crond -f &
