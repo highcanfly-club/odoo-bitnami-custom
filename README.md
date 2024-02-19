@@ -75,7 +75,7 @@ odoo:
       start-autobackup-cron: |
 #         !/bin/bash
           echo "Generate .env file for cron jobs"
-          echo "#!/bin/bash" > /etc/kubernetes.env"
+          echo "#!/bin/bash" > /etc/kubernetes.env
           env >> /etc/kubernetes.env
           chmod +x /etc/kubernetes.env
           echo "Run init cron"
