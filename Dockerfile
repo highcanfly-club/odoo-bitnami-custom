@@ -92,4 +92,5 @@ RUN curl -L https://dl.min.io/client/mc/release/linux-$(dpkg --print-architectur
 COPY --from=busyboxbuilder /busybox-1.36.1/_install/bin/busybox /bin/busybox
 RUN ln -svf /bin/busybox /usr/sbin/sendmail
 COPY --from=dcronbuilder /dcron/crond /usr/sbin/crond
+COPY --from=dcronbuilder /dcron/crontab /usr/bin/crontab
 RUN mkdir -p /etc/cron.d && chown -R 1001 /etc/cron.d && chmod 0755 /usr/sbin/crond

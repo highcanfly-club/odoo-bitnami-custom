@@ -8,6 +8,8 @@ Custom Bitnami Odoo Docker image
   - all the <https://github.com/odoomates/odooapps.git>
   - mail debrand module
   - currency rate update module
+  - cron job to backup the database and send it to an email
+  - cron job to backup the database and send it to an s3 bucket
     …
 
 ## Where ?
@@ -21,6 +23,7 @@ docker pull highcanfly/odoo-bitnami-custom:latest
 - a postfix server relaying to where you want with dkim signing
 - pgAdmin4 with the same admin user as odoo
 - an weekly autobackup script sending backup via email  
+- a smtp relay server
   
 In the helm/odoo directory:
 
@@ -70,11 +73,15 @@ odoo:
       value: "eu-west-1"
   customPostInitScripts:
       start-autobackup-cron: |
-          #!/bin/bash
+#         !/bin/bash
+          echo "Generate .env file for cron jobs"
+          echo "#!/bin/bash" > /etc/kubernetes.env"
+          env >> /etc/kubernetes.env
+          chmod +x /etc/kubernetes.env
           echo "Run init cron"
           mkdir -p /etc/cron.d/
-          echo "0 0 * * 0 root bash -c '/usr/local/bin/autobackup'" > /etc/cron.d/autobackup
-          echo "0 1 * * * root bash -c '/usr/local/bin/autobackup-s3'" > /etc/cron.d/autobackup-s3
+          echo "0 0 * * 0 root bash -c '. /etc/kubernetes.env ; /usr/local/bin/autobackup'" > /etc/cron.d/autobackup
+          echo "0 1 * * * root bash -c '. /etc/kubernetes.env ; /usr/local/bin/autobackup-s3'" > /etc/cron.d/autobackup-s3
           chmod +x /usr/local/bin/autobackup
           chmod +x /usr/local/bin/autobackup-s3
           crond -f &
@@ -82,12 +89,27 @@ odoo:
     periodSeconds: 120
     timeoutSeconds: 10
 
-smtpd:
-  postfixHostname: odoo-smtp.example.org
-  allowedSenderDomains: example.org
-  dkimSelector: dkim
-  dkimPrivateKey: "-----BEGIN RSA PRIVATE KEY-----|MIICXAIBAAKBgQCZ1gNzg0yOP3U1XFAW2zVw8P96A848CtmoldTd0XhkOJgMyu0M|t7xC0TAp4wrpqZHVyZLekDPZUHPECsRm/Qp1tiMArKIHlaeBrPYDOgAkzTHQEmfW|5AMll34YukUViaZxuhuD8ErdLWlwEhJJqDf8lpqL8iNPsXQ2OYcIRQcigQIDAQAB|AoGAEti6UYOLdH3nwSLPGQ3ADVcpJWyj7o0xv0qj6o0IH9cjIaYWxpEX+mOgb/FF|2/yPRk7MtIGcKIqHtEPRbgCgMDu3VipWzK34blZ/2Eb/Rrn00kfhkA2N7PXJObBh|u2RKRiMzYkmnZ18LeJW1f8L/qgO42UEqzasu19Dugv021wUCQQD5sM1MYyUNg2PX|KY8tfV+0KJ4ZfmUzpdbEG0Za2AxnyD7NgZJ4579FWVxhKZsNYpLzL/gjuYOWBCA4|Wpw2cWrTAkEAnbkltTf/TIOBQMPaBTEPGBgDjt6Krr0zKMQ+0v5XFshogb1yZ96K|ZRYtvCEqjjnIzQ/NnLxJmsy9+phKJARA2wJBAMJnp9B7uROmYwvZLcMLRIJuxXmv|8Xee/XI+ki6U3EPJoyw6YCKGvWNvSf/Udwaa4zM4/AhEnnEk0TlPQyUYdUUCQDq9|FCz8MMj3BLDw/4YFckCf2NthR7ax4ZaiF1+OtzJV6o2+1xeVymbBLsEsfOPA42Zz|Jzji6mqLK4ljI+Fr8BcCQGus3D0lshbU1TF5A13kmm/kFdo+eaRGLnEiLvNqkRCk|n8VRc/pH4OD3vaSuKYDYRMRyj6Asl+q6zMGydCpeSxY=|-----END RSA PRIVATE KEY-----"
-  relayHost: "[smtp-relay.gmail.com]:587"
+flex-smtpd:
+  service:
+    name: smtpd
+  config:
+    useCloudflareDDNS: "1"
+    useLetsEncrypt: "0"
+    useLetsEncryptStaging: "0"
+    postfixHostname: odoo-smtp.example.org
+    allowedSenderDomains: example.org
+    dkimSelector: dkim
+    dkimPrivateKey: "-----BEGIN RSA PRIVATE KEY-----|MIICXAIBAAKBgQCZ1gNzg0yOP3U1XFAW2zVw8P96A848CtmoldTd0XhkOJgMyu0M|t7xC0TAp4wrpqZHVyZLekDPZUHPECsRm/Qp1tiMArKIHlaeBrPYDOgAkzTHQEmfW|5AMll34YukUViaZxuhuD8ErdLWlwEhJJqDf8lpqL8iNPsXQ2OYcIRQcigQIDAQAB|AoGAEti6UYOLdH3nwSLPGQ3ADVcpJWyj7o0xv0qj6o0IH9cjIaYWxpEX+mOgb/FF|2/yPRk7MtIGcKIqHtEPRbgCgMDu3VipWzK34blZ/2Eb/Rrn00kfhkA2N7PXJObBh|u2RKRiMzYkmnZ18LeJW1f8L/qgO42UEqzasu19Dugv021wUCQQD5sM1MYyUNg2PX|KY8tfV+0KJ4ZfmUzpdbEG0Za2AxnyD7NgZJ4579FWVxhKZsNYpLzL/gjuYOWBCA4|Wpw2cWrTAkEAnbkltTf/TIOBQMPaBTEPGBgDjt6Krr0zKMQ+0v5XFshogb1yZ96K|ZRYtvCEqjjnIzQ/NnLxJmsy9+phKJARA2wJBAMJnp9B7uROmYwvZLcMLRIJuxXmv|8Xee/XI+ki6U3EPJoyw6YCKGvWNvSf/Udwaa4zM4/AhEnnEk0TlPQyUYdUUCQDq9|FCz8MMj3BLDw/4YFckCf2NthR7ax4ZaiF1+OtzJV6o2+1xeVymbBLsEsfOPA42Zz|Jzji6mqLK4ljI+Fr8BcCQGus3D0lshbU1TF5A13kmm/kFdo+eaRGLnEiLvNqkRCk|n8VRc/pH4OD3vaSuKYDYRMRyj6Asl+q6zMGydCpeSxY=|-----END RSA PRIVATE KEY-----"
+    relayHost: "[smtp-relay.gmail.com]:587"
+    relayHostUser: "myuser@gmail.com"
+    relayHostPassword: "my good password"
+    certificateIssuer: letsencrypt-cloudflare
+    certificateSecretName: odoo-smtp-example-org-tls
+    cloudflareApiKey: "myCloudflareApiKey"
+    cloudflareDnsRecords: odoo-smtp.example.org
+    cloudflareZoneId: "myCloudflareZoneId"
+  image:
+    tag: v4.1.0g
 
 pgadmin:
   ingress:
