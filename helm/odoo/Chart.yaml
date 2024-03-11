@@ -25,7 +25,7 @@ appVersion: "16.0.0.22"
 
 dependencies:
 - name: odoo
-  version: 24.0.5
+  version: 25.0.0
   repository: oci://registry-1.docker.io/bitnamicharts
 - name: flex-smtpd
   version: 0.1.6

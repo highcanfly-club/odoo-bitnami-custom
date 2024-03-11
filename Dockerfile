@@ -74,8 +74,10 @@ COPY --chmod=0755 deploy-addons.sh /deploy-addons.sh
 COPY --chmod=0755 autobackup.sh /usr/local/bin/autobackup
 COPY --chmod=0755 autobackup-s3.sh /usr/local/bin/autobackup-s3
 COPY --chmod=0755 restore-backup-s3.sh /usr/local/bin/restore-backup-s3
+COPY --chmod=0755 initfrom-s3.sh /usr/local/bin/initfrom-s3
+COPY --chmod=0755 libodoo.sh /opt/bitnami/scripts/libodoo.sh
 RUN apt-get update -y \
-    && apt-get install -y xz-utils bzip2 vim
+    && apt-get install -y xz-utils bzip2 unzip vim
 RUN sh /deploy-addons.sh \
     && rm -rf /deploy-addons.sh
     # && apt-get update -y && apt install -y --no-install-recommends cron
