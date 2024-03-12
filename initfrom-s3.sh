@@ -67,16 +67,20 @@ unzip -o ${BACKUP_DIR}/${LATEST_BACKUP} -d ${TMP_DIR}
 export PGPASSWORD=${ODOO_DATABASE_PASSWORD}
 
 # Drop the existing database
+echo "Drop the existing database"
 psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d postgres -c "
 SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${ODOO_DATABASE_NAME}' AND pid <> pg_backend_pid();"
 psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d postgres -c '\c' -c "DROP DATABASE IF EXISTS ${ODOO_DATABASE_NAME};"
 
 # Create a new database
+echo "Create a new database"
 psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d postgres -c "CREATE DATABASE ${ODOO_DATABASE_NAME};"
 
 # Restore the database from the dump
+echo "Restore the database from the dump"
 psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d ${ODOO_DATABASE_NAME} -f ${TMP_DIR}/dump.sql
 
+echo "Restore filestore"
 # Remove the filestore directory
 mkdir -p ${FILESTOR_DIR}/${ODOO_DATABASE_NAME}
 cp -r ${TMP_DIR}/filestore/* ${FILESTOR_DIR}/${ODOO_DATABASE_NAME}
