@@ -49,6 +49,7 @@ if [ "${LATEST_BACKUP##*.}" == "enc" ]; then
     LATEST_BACKUP_BASE=$(echo $LATEST_BACKUP | sed 's/.enc//')
     DECRYPT=""
     if [ -n "$CRYPTOKEN" ]; then
+        echo "Archive is encrypted, decrypting"
         DECRYPT="-pass pass:$CRYPTOKEN"
     else
         echo "CRYPTOKEN is not set but backup file is encrypted"
@@ -62,8 +63,19 @@ fi
 TMP_DIR=$(mktemp -d)
 unzip -o ${BACKUP_DIR}/${LATEST_BACKUP} -d ${TMP_DIR}
 
-# Restore the database
-pg_restore -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d ${ODOO_DATABASE_NAME} -v -j 4 -Fc -O -x ${TMP_DIR}/dump.sql
+# Connect to the PostgreSQL database server
+export PGPASSWORD=${ODOO_DATABASE_PASSWORD}
+
+# Drop the existing database
+psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d postgres -c "
+SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${ODOO_DATABASE_NAME}' AND pid <> pg_backend_pid();"
+psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d postgres -c '\c' -c "DROP DATABASE IF EXISTS ${ODOO_DATABASE_NAME};"
+
+# Create a new database
+psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d postgres -c "CREATE DATABASE ${ODOO_DATABASE_NAME};"
+
+# Restore the database from the dump
+psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d ${ODOO_DATABASE_NAME} -f ${TMP_DIR}/dump.sql
 
 # Remove the filestore directory
 mkdir -p ${FILESTOR_DIR}/${ODOO_DATABASE_NAME}

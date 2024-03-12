@@ -122,6 +122,9 @@ odoo:
         schedule: '@weekly'
         
 cloudflared:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
   probe:
     enabled: true
   enabled: false
