@@ -146,8 +146,8 @@ odoo_initialize() {
             odoo_conf_set "smtp_user" "$ODOO_SMTP_USER"
             odoo_conf_set "smtp_password" "$ODOO_SMTP_PASSWORD"
         fi
-
-        if ! is_boolean_yes "$ODOO_SKIP_BOOTSTRAP"; then      
+        # if ODOO_SKIP_BOOTSTRAP is set and ODOO_INIT_FROM_S3 is not set, we assume the database is already initialized
+       if ! is_boolean_yes "$ODOO_SKIP_BOOTSTRAP" && ! is_boolean_yes "$ODOO_INIT_FROM_S3"; then
             info "Installing modules"
             local -a init_args=("--init=all")
             # Disable demo data import if specified by the user

@@ -128,3 +128,23 @@ pgadmin:
       secretName: pgadmin.example.org-tls
 EOF
 ```
+
+## Initializing Odoo Database from a File in an S3 Bucket
+
+If you want to initialize the Odoo database from a file in an S3 bucket, you need to set the environment variable `ODOO_INIT_FROM_S3=true` in the Odoo container.
+
+The `initfrom-s3.sh` script will be executed, which uses the following environment variables:
+
+| Variable | Description |
+| --- | --- |
+| `S3_BUCKET` | The name of the S3 bucket where the backup file is located. |
+| `S3_ACCESS_KEY` | The access key to access the S3 bucket. |
+| `S3_SECRET_KEY` | The secret key to access the S3 bucket. |
+| `S3_ENDPOINT` | The endpoint of the S3 service. |
+| `S3_REGION` | The region of the S3 service. |
+| `S3_PATH` | The path in the S3 bucket where the backup file is located. |
+| `S3_ODOO_FILE` | The name of the backup file. If this variable is not set, the script will use the most recent file in the specified path. |
+
+The script first checks if all necessary variables are set. Then, it checks if the `mc` tool (MinIO Client) is installed and if the `s3backup` alias is set. If the alias is not set, the script sets it.
+
+Next, the script creates a backup directory, finds the most recent backup file in the S3 bucket (or uses the file specified by `S3_ODOO_FILE`), copies it to the backup directory, and if the backup file has the `.enc` extension, decrypts it.

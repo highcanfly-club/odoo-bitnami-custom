@@ -22,8 +22,6 @@ if [ -z "${S3_BUCKET}" ] || [ -z "${S3_ACCESS_KEY}" ] || [ -z "${S3_SECRET_KEY}"
     exit 1
 fi
 
-
-
 # test if mc is installed
 if [ -z "$(which mc)" ]; then
     echo "mc is not installed"
@@ -40,8 +38,12 @@ fi
 # create a backup directory
 mkdir -p ${BACKUP_DIR}
 
-# Find latest backup file in s3
-LATEST_BACKUP=$(mc ls s3backup/${S3_BUCKET}/${S3_PATH} | sort -r | head -n 1 | awk '{print $6}')
+# Find latest backup file in s3 if S3_ODOO_FILE is not set
+if [ -z "${S3_ODOO_FILE}" ]; then
+    LATEST_BACKUP=$(mc ls s3backup/${S3_BUCKET}/${S3_PATH} | sort -r | head -n 1 | awk '{print $6}')
+else
+    LATEST_BACKUP=${S3_ODOO_FILE}
+fi
 mc cp s3backup/${S3_BUCKET}/${S3_PATH}/${LATEST_BACKUP} ${BACKUP_DIR}/${LATEST_BACKUP}
 
 # If the backup extension is .enc, decrypt it
@@ -53,9 +55,9 @@ if [ "${LATEST_BACKUP##*.}" == "enc" ]; then
         DECRYPT="-pass pass:$CRYPTOKEN"
     else
         echo "CRYPTOKEN is not set but backup file is encrypted"
-       exit 1
+        exit 1
     fi
-    openssl aes-256-cbc -a -d -md sha256 $DECRYPT -in ${BACKUP_DIR}/${LATEST_BACKUP} -out - > ${BACKUP_DIR}/${LATEST_BACKUP_BASE}
+    openssl aes-256-cbc -a -d -md sha256 $DECRYPT -in ${BACKUP_DIR}/${LATEST_BACKUP} -out - >${BACKUP_DIR}/${LATEST_BACKUP_BASE}
     rm -f ${BACKUP_DIR}/${LATEST_BACKUP}
     LATEST_BACKUP=${LATEST_BACKUP_BASE}
 fi
@@ -78,8 +80,19 @@ psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER}
 
 # Restore the database from the dump
 echo "Restore the database from the dump"
-psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d ${ODOO_DATABASE_NAME} -f ${TMP_DIR}/dump.sql
+# Start a background job that prints a dot every second
+while sleep 1; do printf "."; done &
 
+# Save the PID of the background job to a variable
+BG_JOB_PID=$!
+# Run the psql command and redirect its output to ${BACKUP_DIR}/${LATEST_BACKUP_BASE}.log
+psql -v ON_ERROR_STOP=1 -h ${ODOO_DATABASE_HOST} -p ${ODOO_DATABASE_PORT_NUMBER} -U ${ODOO_DATABASE_USER} -d ${ODOO_DATABASE_NAME} -f ${TMP_DIR}/dump.sql > ${BACKUP_DIR}/${LATEST_BACKUP_BASE}.log 2>&1
+
+# Kill the background job
+kill $BG_JOB_PID
+
+# Print a new line
+echo
 echo "Restore filestore"
 # Remove the filestore directory
 mkdir -p ${FILESTOR_DIR}/${ODOO_DATABASE_NAME}
