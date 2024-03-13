@@ -71,6 +71,12 @@ odoo:
       value: "mySecretKey"
     - name: S3_REGION
       value: "eu-west-1"
+    - name: CRYPTOKEN
+      value: "encryptionPassword"
+    - name: ODOO_SKIP_BOOTSTRAP
+      value: "false"
+    - name: ODOO_INIT_FROM_S3
+      value: "false"
   customPostInitScripts:
       start-autobackup-cron: |
           #!/bin/bash
@@ -126,6 +132,40 @@ pgadmin:
     - hosts:
       - pgadmin.example.org
       secretName: pgadmin.example.org-tls
+
+cloudflared:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  probe:
+    enabled: true
+  enabled: true
+  image:
+      repository: highcanfly/net-tools
+      tag: 1.2.4
+  TunnelID: your-tunnel-id
+  credentials: {"AccountTag":"your-account-tag","TunnelSecret":"your-tunnel-secret","TunnelID":"your-tunnel-id"}
+  config: |
+    tunnel: your-tunnel-name
+    credentials-file: /etc/cloudflared/creds/credentials.json
+    metrics: 0.0.0.0:2000
+    no-autoupdate: true
+    ingress:
+      - hostname: your-hostname-1
+        service: http://odoo:8069
+      - hostname: your-hostname-2
+        service: http://pgadmin:80
+      - service: http_status:404
+    cert: |
+        -----BEGIN PRIVATE KEY-----
+        your-private-key
+        -----END PRIVATE KEY-----
+        -----BEGIN CERTIFICATE-----
+        your-certificate
+        -----END CERTIFICATE-----
+        -----BEGIN ARGO TUNNEL TOKEN-----
+        your-argo-tunnel-token
+        -----END ARGO TUNNEL TOKEN-----
 EOF
 ```
 
@@ -144,7 +184,25 @@ The `initfrom-s3.sh` script will be executed, which uses the following environme
 | `S3_REGION` | The region of the S3 service. |
 | `S3_PATH` | The path in the S3 bucket where the backup file is located. |
 | `S3_ODOO_FILE` | The name of the backup file. If this variable is not set, the script will use the most recent file in the specified path. |
+| `CRYPTOKEN` | The password to decrypt the backup file. |
 
 The script first checks if all necessary variables are set. Then, it checks if the `mc` tool (MinIO Client) is installed and if the `s3backup` alias is set. If the alias is not set, the script sets it.
 
-Next, the script creates a backup directory, finds the most recent backup file in the S3 bucket (or uses the file specified by `S3_ODOO_FILE`), copies it to the backup directory, and if the backup file has the `.enc` extension, decrypts it.
+Next, the script creates a backup directory, finds the most recent backup file in the S3 bucket (or uses the file specified by `S3_ODOO_FILE`), copies it to the backup directory, and if the backup file has the `.enc` extension, decrypts it using the password ing `CRYPTOKEN` variable.
+
+## Cloudflared Container
+
+The `cloudflared` container is used to create a secure tunnel between your network and the Cloudflare edge network using Cloudflare's Argo Tunnel. This is particularly useful for exposing a local server to the internet.
+
+The `cloudflared` container is controlled by the `enabled` flag. If `enabled` is set to `true`, the container is activated and the tunnel is created.
+
+Here are the key configurations for the `cloudflared` container:
+
+| Configuration | Description |
+| --- | --- |
+| `image.repository` and `image.tag` | The Docker image used for the `cloudflared` container. |
+| `TunnelID` | The unique identifier for the Argo Tunnel. |
+| `credentials` | The credentials required to authenticate with Cloudflare. This includes the `AccountTag` and `TunnelSecret`. |
+| `config` | The configuration for the Argo Tunnel. This includes the tunnel name, the credentials file path, the metrics endpoint, and the ingress rules. |
+
+The `ingress` rules define the routing for traffic that enters the tunnel. Each rule consists of a `hostname` and a `service`. The `hostname` is the external hostname that the tunnel will be accessible from, and the `service` is the internal service that the tunnel will route traffic to.
