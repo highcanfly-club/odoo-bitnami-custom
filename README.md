@@ -166,7 +166,6 @@ cloudflared:
         -----BEGIN ARGO TUNNEL TOKEN-----
         your-argo-tunnel-token
         -----END ARGO TUNNEL TOKEN-----
-EOF
 ```
 
 ## Initializing Odoo Database from a File in an S3 Bucket
