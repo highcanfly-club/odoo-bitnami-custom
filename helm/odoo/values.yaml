@@ -130,7 +130,7 @@ cloudflared:
   enabled: false
   image:
       repository: highcanfly/net-tools
-      tag: 1.2.4
+      tag: 1.2.5
   TunnelID: 3a7b5c9d-1e2f-4a6b-b9d8-c0e7f6a5b4c3
   credentials: {"AccountTag":"1b3a9c8d7e6f5g4h3i2j1k0l","TunnelSecret":"m4n5o6p7q8r9s0t1u2v3w4x5y6z7A8B9C","TunnelID":"3a7b5c9d-1e2f-4a6b-b9d8-c0e7f6a5b4c3"}
   # command: ["/bin/sh"]
