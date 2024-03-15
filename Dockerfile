@@ -51,6 +51,8 @@ RUN cd /busybox-1.36.1/ && make install
 FROM golang:1.21-bullseye as gobuilder
 COPY getsecret /getsecret
 RUN cd /getsecret && go mod tidy && go build -ldflags="-s -w"
+COPY health /health
+RUN cd /health && go build -o /health/health
 
 ARG BASE_VERSION_SHORT
 ARG BASE_VERSION
@@ -95,4 +97,5 @@ COPY --from=busyboxbuilder /busybox-1.36.1/_install/bin/busybox /bin/busybox
 RUN ln -svf /bin/busybox /usr/sbin/sendmail
 COPY --from=dcronbuilder /dcron/crond /usr/sbin/crond
 COPY --from=dcronbuilder /dcron/crontab /usr/bin/crontab
+COPY --from=gobuilder /health/health /usr/local/bin/health
 RUN mkdir -p /etc/cron.d && chown -R 1001 /etc/cron.d && chmod 0755 /usr/sbin/crond

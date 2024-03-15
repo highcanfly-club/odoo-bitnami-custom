@@ -162,8 +162,11 @@ odoo_initialize() {
             info "Updating admin user credentials"
             postgresql_remote_execute "${db_execute_args[@]}" <<< "UPDATE res_users SET login = '${ODOO_EMAIL}', password = '${ODOO_PASSWORD}' WHERE login = 'admin'"
         elif is_boolean_yes "$ODOO_INIT_FROM_S3"; then
-            info "Initializing Odoo from S3"
-            /usr/local/bin/initfrom-s3
+            info "Initializing Odoo from S3 and simulate healthy odoo"
+            health --httpPort=${ODOO_PORT_NUMBER=8069} &
+                /usr/local/bin/initfrom-s3
+            kill %1
+            info "Simulated healthy odoo killed"
             info "Updating admin user credentials"
             postgresql_remote_execute "${db_execute_args[@]}" <<< "UPDATE res_users SET login = '${ODOO_EMAIL}', password = '${ODOO_PASSWORD}' WHERE login = 'admin'"
             info "Clearing assets cache from the database"
